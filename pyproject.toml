@@ -44,6 +44,7 @@ dev = [
     "isort>=5.12.0",
     "mypy>=1.0.0",
     "ruff>=0.1.0",
+    "pip-audit>=2.6.0",
 ]
 
 [build-system]
@@ -76,6 +77,15 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 
+[[tool.mypy.overrides]]
+module = [
+    "google.adk.*",
+    "google.genai.*",
+    "slack_bolt.*",
+    "slack_sdk.*",
+]
+ignore_missing_imports = true
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88
@@ -100,8 +110,3 @@ python_files = ["test_*.py"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
 
-[dependency-groups]
-dev = [
-    "pytest>=8.4.0",
-    "pytest-asyncio>=1.0.0",
-]

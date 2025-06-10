@@ -27,7 +27,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --all-extras
+        uv sync --extra dev
 
     - name: Run linting
       run: |
@@ -37,7 +37,7 @@ jobs:
 
     - name: Run type checking
       run: |
-        uv run mypy .
+        uv run mypy src
 
     - name: Run tests
       run: |
@@ -62,7 +62,7 @@ jobs:
       run: uv python install 3.11
 
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --extra dev
 
     - name: Run security audit
       run: uv run pip-audit
