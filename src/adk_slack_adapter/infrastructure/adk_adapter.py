@@ -56,11 +56,11 @@ class AdkAdapter:
         """
         try:
             session_id = f"slack_{user_id}_{session_id_suffix}"
-            session = self.session_service.get_session(
+            session = await self.session_service.get_session(
                 app_name=self.app_name, user_id=user_id, session_id=session_id
             )
             if not session:
-                session = self.session_service.create_session(
+                session = await self.session_service.create_session(
                     state={},
                     app_name=self.app_name,
                     user_id=user_id,
