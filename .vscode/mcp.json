@@ -1,0 +1,38 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "github_token",
+      "description": "GitHub Personal Access Token",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "LOCAL_ZIDANE_PATH",
+      "description": "local absolute path to Zidane (example: /Users/ma3tk/project/github/Zidane)",
+      "password": false
+    },
+    {
+      "type": "promptString",
+      "id": "HOME_DIR",
+      "description": "local absolute path to Home (example: /Users/tagashira.keisuke)",
+      "password": false
+    }
+  ],
+  "servers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}"
+      }
+    }
+  },
+}
