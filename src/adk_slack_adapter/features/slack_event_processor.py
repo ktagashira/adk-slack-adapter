@@ -1,17 +1,34 @@
 import logging
+
 from slack_sdk.web.async_client import AsyncWebClient
+
 from .interaction_flow import InteractionFlow
 
 logger = logging.getLogger(__name__)
 
 
 class SlackEventProcessor:
-    def __init__(self, interaction_flow: InteractionFlow, bot_user_id: str | None):
+    """
+    Processes Slack events and filters relevant messages for the bot.
+
+    This class handles the business logic for determining which Slack messages
+    should be processed by the ADK agent, including direct messages, mentions,
+    and thread replies.
+
+    Attributes:
+        interaction_flow: Handles message processing coordination
+        bot_user_id: The bot's Slack user ID for mention detection
+    """
+
+    def __init__(
+        self, interaction_flow: InteractionFlow, bot_user_id: str | None
+    ) -> None:
         """
-        Initializes the SlackEventProcessor.
+        Initialize the SlackEventProcessor.
+
         Args:
             interaction_flow: An instance of InteractionFlow.
-            bot_user_id: The Slack Bot User ID.
+            bot_user_id: The Slack Bot User ID for mention detection.
         """
         self.interaction_flow = interaction_flow
         self.bot_user_id = bot_user_id
@@ -22,9 +39,14 @@ class SlackEventProcessor:
 
     async def process_message_event(
         self, event_data: dict, say_fn, client: AsyncWebClient
-    ):
+    ) -> None:
         """
-        Processes a Slack message event (direct message or app mention).
+        Process a Slack message event (direct message or app mention).
+
+        This method analyzes incoming Slack messages to determine if they should
+        be processed by the ADK agent. It handles various scenarios including
+        direct messages, channel mentions, and thread conversations.
+
         Args:
             event_data: The event data dictionary from Slack.
             say_fn: The 'say' function provided by slack_bolt for sending messages.

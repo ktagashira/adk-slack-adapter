@@ -6,9 +6,20 @@ logger = logging.getLogger(__name__)
 
 
 class InteractionFlow:
-    def __init__(self, adk_adapter: AdkAdapter):
+    """
+    Orchestrates the flow of messages between Slack and ADK agents.
+
+    This class serves as the coordination layer between Slack events and
+    ADK agent processing, managing the high-level interaction flow.
+
+    Attributes:
+        adk_adapter: Adapter for communicating with ADK agents
+    """
+
+    def __init__(self, adk_adapter: AdkAdapter) -> None:
         """
-        Initializes the InteractionFlow.
+        Initialize the InteractionFlow.
+
         Args:
             adk_adapter: An instance of AdkAdapter from the infrastructure layer.
         """
@@ -18,14 +29,19 @@ class InteractionFlow:
         self, message_text: str, user_id: str, thread_id: str
     ):
         """
-        Processes the user's message using the ADK agent and yields response parts.
+        Process the user's message using the ADK agent and yield response parts.
+
+        This method coordinates with the ADK adapter to process user messages
+        and stream back responses in real-time.
+
         Args:
             message_text: The text of the user's message.
             user_id: The ID of the user who sent the message.
             thread_id: The Slack thread ID (or message TS if not in a thread)
-                       to be used as part of the session ID suffix.
+                      to be used as part of the session ID suffix.
+
         Yields:
-            str: Parts of the agent's response text.
+            str: Parts of the agent's response text as they become available.
         """
         logger.info(
             f"InteractionFlow: Processing message for user {user_id} in thread {thread_id}"
