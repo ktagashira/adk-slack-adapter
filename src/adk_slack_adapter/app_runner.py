@@ -1,35 +1,49 @@
 import asyncio
 import logging
-from typing import Optional
 
 from google.adk.agents import Agent
 
 from .features.interaction_flow import InteractionFlow
 from .features.slack_event_processor import SlackEventProcessor
 from .infrastructure.adk_adapter import AdkAdapter
-from .infrastructure.slack_adapter import SlackAdapter
 from .infrastructure.config import AdkSlackConfig
+from .infrastructure.slack_adapter import SlackAdapter
 
 logger = logging.getLogger(__name__)
 
 
 class AdkSlackAppRunner:
     """
-    Orchestrates the initialization and running of the ADK Slack Toolkit components.
+    Orchestrates the initialization and running of the ADK Slack adapter components.
+
+    This class serves as the main entry point for integrating Google ADK agents
+    with Slack through Socket Mode. It coordinates all necessary components
+    including configuration, adapters, and event processing.
+
+    Attributes:
+        config: Configuration instance containing Slack tokens and settings
+        agent_instance: The ADK agent instance to integrate with Slack
+        adk_adapter: Adapter for communicating with ADK agents
+        interaction_flow: Orchestrates message flow between components
+        slack_event_processor: Processes Slack events and messages
+        slack_adapter: Handles Slack Socket Mode connection
     """
 
     def __init__(
         self,
         agent_instance: Agent,
-        config: Optional[AdkSlackConfig] = None,
-    ):
+        config: AdkSlackConfig | None = None,
+    ) -> None:
         """
-        Initializes the AdkSlackAppRunner.
+        Initialize the AdkSlackAppRunner.
 
         Args:
-            agent_instance: The specific ADK Agent instance to use.
+            agent_instance: The specific ADK Agent instance to use for processing messages.
             config: Optional AdkSlackConfig object. If None, configuration will be
-                    loaded from environment variables by AdkSlackConfig's default behavior.
+                   loaded from environment variables using AdkSlackConfig defaults.
+
+        Raises:
+            ValueError: If configuration validation fails or required tokens are missing.
         """
         if config is None:
             self.config = AdkSlackConfig()
@@ -80,9 +94,16 @@ class AdkSlackAppRunner:
         logger.debug("Slack Adapter initialized.")
         logger.info("AdkSlackAppRunner initialized successfully.")
 
-    async def start(self):
+    async def start(self) -> None:
         """
-        Starts the Slack adapter to begin listening for events.
+        Start the Slack adapter to begin listening for events.
+
+        This method starts the Socket Mode handler and begins processing
+        Slack events. The method will run indefinitely until cancelled
+        or an error occurs.
+
+        Raises:
+            Exception: If an error occurs during startup or execution.
         """
         logger.info("Starting AdkSlackAppRunner (Slack Adapter)...")
         try:
