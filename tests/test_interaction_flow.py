@@ -1,6 +1,6 @@
 """Tests for InteractionFlow."""
 
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -18,11 +18,12 @@ class TestInteractionFlow:
     @pytest.mark.asyncio
     async def test_get_agent_response_stream_success(self):
         """Test successful agent response streaming."""
+
         # Mock the ADK adapter to return some response parts
         async def mock_stream():
             for item in ["Hello", " ", "world", "!"]:
                 yield item
-        
+
         self.mock_adk_adapter.query_agent_stream.return_value = mock_stream()
 
         responses = []
@@ -43,11 +44,12 @@ class TestInteractionFlow:
     @pytest.mark.asyncio
     async def test_get_agent_response_stream_filters_empty_responses(self):
         """Test that empty response parts are filtered out."""
+
         # Mock the ADK adapter to return some empty and non-empty parts
         async def mock_stream():
             for item in ["Hello", "", "world", None, "!"]:
                 yield item
-        
+
         self.mock_adk_adapter.query_agent_stream.return_value = mock_stream()
 
         responses = []
