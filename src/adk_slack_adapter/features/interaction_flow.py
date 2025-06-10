@@ -1,4 +1,5 @@
 import logging
+from typing import AsyncGenerator
 
 from adk_slack_adapter.infrastructure.adk_adapter import AdkAdapter
 
@@ -27,7 +28,7 @@ class InteractionFlow:
 
     async def get_agent_response_stream(
         self, message_text: str, user_id: str, thread_id: str
-    ):
+    ) -> AsyncGenerator[str, None]:
         """
         Process the user's message using the ADK agent and yield response parts.
 

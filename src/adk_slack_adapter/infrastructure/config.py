@@ -28,7 +28,7 @@ class AdkSlackConfig:
     adk_app_name: str = "adk_slack_agent"
     logging_level: str = "INFO"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.slack_bot_token is None:
             self.slack_bot_token = os.environ.get("SLACK_BOT_TOKEN")
         if self.slack_app_token is None:

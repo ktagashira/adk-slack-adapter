@@ -1,4 +1,5 @@
 import logging
+from typing import AsyncGenerator
 
 from google.adk.agents import Agent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
@@ -38,7 +39,7 @@ class AdkAdapter:
 
     async def query_agent_stream(
         self, message_text: str, user_id: str, session_id_suffix: str
-    ):
+    ) -> AsyncGenerator[str, None]:
         """
         Query the ADK agent and yield response parts as a stream.
 
