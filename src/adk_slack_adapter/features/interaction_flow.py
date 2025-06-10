@@ -1,5 +1,5 @@
 import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from adk_slack_adapter.infrastructure.adk_adapter import AdkAdapter
 
