@@ -58,7 +58,9 @@ class SlackAdapter:
 
     def _register_event_handlers(self) -> None:
         @self.app.event("message")
-        async def handle_message_wrapper(event: dict[str, Any], say: Any, client: AsyncWebClient) -> None:
+        async def handle_message_wrapper(
+            event: dict[str, Any], say: Any, client: AsyncWebClient
+        ) -> None:
             logger.debug(f"SlackAdapter received message event: {event}")
             await self.event_processor.process_message_event(
                 event_data=event,
@@ -67,7 +69,9 @@ class SlackAdapter:
             )
 
         @self.app.event("app_mention")
-        async def handle_app_mention_wrapper(event: dict[str, Any], say: Any, client: AsyncWebClient) -> None:
+        async def handle_app_mention_wrapper(
+            event: dict[str, Any], say: Any, client: AsyncWebClient
+        ) -> None:
             logger.debug(f"SlackAdapter received app_mention event: {event}")
             await self.event_processor.process_message_event(
                 event_data=event,
