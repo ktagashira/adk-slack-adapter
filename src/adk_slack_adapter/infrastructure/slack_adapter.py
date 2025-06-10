@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
@@ -55,9 +56,11 @@ class SlackAdapter:
 
         self._register_event_handlers()
 
-    def _register_event_handlers(self):
+    def _register_event_handlers(self) -> None:
         @self.app.event("message")
-        async def handle_message_wrapper(event, say, client):
+        async def handle_message_wrapper(
+            event: dict[str, Any], say: Any, client: AsyncWebClient
+        ) -> None:
             logger.debug(f"SlackAdapter received message event: {event}")
             await self.event_processor.process_message_event(
                 event_data=event,
@@ -66,7 +69,9 @@ class SlackAdapter:
             )
 
         @self.app.event("app_mention")
-        async def handle_app_mention_wrapper(event, say, client):
+        async def handle_app_mention_wrapper(
+            event: dict[str, Any], say: Any, client: AsyncWebClient
+        ) -> None:
             logger.debug(f"SlackAdapter received app_mention event: {event}")
             await self.event_processor.process_message_event(
                 event_data=event,

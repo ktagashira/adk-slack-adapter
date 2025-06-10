@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Callable
+from typing import Any
 
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -38,7 +40,7 @@ class SlackEventProcessor:
             )
 
     async def process_message_event(
-        self, event_data: dict, say_fn, client: AsyncWebClient
+        self, event_data: dict[str, Any], say_fn: Callable, client: AsyncWebClient
     ) -> None:
         """
         Process a Slack message event (direct message or app mention).

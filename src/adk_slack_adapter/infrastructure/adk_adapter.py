@@ -1,4 +1,5 @@
 import logging
+from collections.abc import AsyncGenerator
 
 from google.adk.agents import Agent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
@@ -38,7 +39,7 @@ class AdkAdapter:
 
     async def query_agent_stream(
         self, message_text: str, user_id: str, session_id_suffix: str
-    ):
+    ) -> AsyncGenerator[str, None]:
         """
         Query the ADK agent and yield response parts as a stream.
 
@@ -55,11 +56,11 @@ class AdkAdapter:
         """
         try:
             session_id = f"slack_{user_id}_{session_id_suffix}"
-            session = self.session_service.get_session(
+            session = await self.session_service.get_session(
                 app_name=self.app_name, user_id=user_id, session_id=session_id
             )
             if not session:
-                session = self.session_service.create_session(
+                session = await self.session_service.create_session(
                     state={},
                     app_name=self.app_name,
                     user_id=user_id,
