@@ -1,18 +1,30 @@
-import os
 import logging
+import os
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class AdkSlackConfig:
-    """Configuration for ADK Slack Toolkit."""
+    """
+    Configuration for ADK Slack adapter.
 
-    slack_bot_token: Optional[str] = None
-    slack_app_token: Optional[str] = None
-    slack_bot_user_id: Optional[str] = None
+    This class manages all configuration settings for the Slack integration,
+    including Slack tokens, bot settings, and logging configuration.
+    Environment variables are automatically loaded in __post_init__.
+
+    Attributes:
+        slack_bot_token: Slack bot token (xoxb-...) for API calls
+        slack_app_token: Slack app token (xapp-...) for Socket Mode
+        slack_bot_user_id: Bot's user ID for mention detection
+        adk_app_name: Name of the ADK application
+        logging_level: Logging level (DEBUG, INFO, WARNING, ERROR)
+    """
+
+    slack_bot_token: str | None = None
+    slack_app_token: str | None = None
+    slack_bot_user_id: str | None = None
     adk_app_name: str = "adk_slack_agent"
     logging_level: str = "INFO"
 
@@ -30,8 +42,13 @@ class AdkSlackConfig:
 
         self.logging_level = os.environ.get("LOGGING_LEVEL", self.logging_level).upper()
 
-    def validate(self):
-        """Validates that essential configuration values are set."""
+    def validate(self) -> None:
+        """
+        Validate that essential configuration values are set.
+
+        Raises:
+            ValueError: If required configuration values are missing.
+        """
         if not self.slack_bot_token:
             raise ValueError(
                 "SLACK_BOT_TOKEN is not set. Provide it via constructor or environment variable."
