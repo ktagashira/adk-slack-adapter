@@ -13,7 +13,6 @@ import asyncio
 import logging
 import signal
 import sys
-from typing import Optional
 
 from google.adk.agents import Agent
 
@@ -24,7 +23,7 @@ class AdvancedSlackBot:
     """Advanced Slack bot with enhanced features."""
 
     def __init__(self):
-        self.runner: Optional[AdkSlackAppRunner] = None
+        self.runner: AdkSlackAppRunner | None = None
         self.logger = logging.getLogger(__name__)
         self._shutdown_event = asyncio.Event()
 
@@ -37,13 +36,12 @@ class AdvancedSlackBot:
         agent = Agent(
             name="AdvancedSlackBot",
             instructions="""
-            You are an advanced AI assistant integrated with Slack. 
+            You are an advanced AI assistant integrated with Slack.
             You can help with:
             - Answering questions
             - Providing explanations
             - Assisting with tasks
             - Code help and explanations
-            
             Always be helpful, accurate, and professional in your responses.
             Keep responses concise but comprehensive.
             """,
