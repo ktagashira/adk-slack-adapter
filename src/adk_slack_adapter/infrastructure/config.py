@@ -20,6 +20,7 @@ class AdkSlackConfig:
         slack_bot_user_id: Bot's user ID for mention detection
         adk_app_name: Name of the ADK application
         logging_level: Logging level (DEBUG, INFO, WARNING, ERROR)
+        allowed_channels: List of channel IDs where bot is allowed to respond (None means all channels)
     """
 
     slack_bot_token: str | None = None
@@ -27,6 +28,7 @@ class AdkSlackConfig:
     slack_bot_user_id: str | None = None
     adk_app_name: str = "adk_slack_agent"
     logging_level: str = "INFO"
+    allowed_channels: list[str] | None = None
 
     def __post_init__(self) -> None:
         if self.slack_bot_token is None:
@@ -41,6 +43,15 @@ class AdkSlackConfig:
             self.adk_app_name = _adk_app_name_env
 
         self.logging_level = os.environ.get("LOGGING_LEVEL", self.logging_level).upper()
+
+        # Parse allowed channels from environment variable
+        if self.allowed_channels is None:
+            allowed_channels_env = os.environ.get("ALLOWED_CHANNELS")
+            if allowed_channels_env:
+                # Split by comma and strip whitespace
+                self.allowed_channels = [
+                    channel.strip() for channel in allowed_channels_env.split(",") if channel.strip()
+                ]
 
     def validate(self) -> None:
         """

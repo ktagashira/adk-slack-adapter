@@ -100,3 +100,47 @@ class TestAdkSlackConfig:
         )
         config.validate()
         assert "SLACK_BOT_USER_ID is not set" in caplog.text
+
+    def test_allowed_channels_from_env(self):
+        """Test that allowed channels are loaded from environment variable."""
+        with patch.dict(
+            os.environ,
+            {
+                "SLACK_BOT_TOKEN": "xoxb-test-token",
+                "SLACK_APP_TOKEN": "xapp-test-token",
+                "ALLOWED_CHANNELS": "C1234567,C2345678, C3456789 ",
+            },
+        ):
+            config = AdkSlackConfig()
+            assert config.allowed_channels == ["C1234567", "C2345678", "C3456789"]
+
+    def test_allowed_channels_empty_env(self):
+        """Test that empty allowed channels environment variable results in None."""
+        with patch.dict(
+            os.environ,
+            {
+                "SLACK_BOT_TOKEN": "xoxb-test-token",
+                "SLACK_APP_TOKEN": "xapp-test-token",
+                "ALLOWED_CHANNELS": "",
+            },
+        ):
+            config = AdkSlackConfig()
+            assert config.allowed_channels is None
+
+    def test_allowed_channels_not_set(self):
+        """Test that allowed channels defaults to None when not set."""
+        config = AdkSlackConfig()
+        assert config.allowed_channels is None
+
+    def test_allowed_channels_constructor_override(self):
+        """Test that constructor values override environment variables for allowed channels."""
+        with patch.dict(
+            os.environ,
+            {
+                "ALLOWED_CHANNELS": "C1111111,C2222222",
+            },
+        ):
+            config = AdkSlackConfig(
+                allowed_channels=["C9999999", "C8888888"]
+            )
+            assert config.allowed_channels == ["C9999999", "C8888888"]
