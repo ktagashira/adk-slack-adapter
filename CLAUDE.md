@@ -141,3 +141,54 @@ The project uses GitHub Actions for continuous integration:
 - **Coverage**: pytest-cov with Codecov integration
 
 All PRs must pass CI checks before merging.
+
+## Test-Driven Development (TDD) Approach
+
+When implementing new features, follow this TDD workflow:
+
+### 1. Write Tests First
+- Create comprehensive test cases that describe the expected behavior
+- Include both positive and negative test scenarios
+- Write tests for edge cases and error conditions
+- Ensure tests initially fail (red phase)
+
+### 2. Implement Minimal Code
+- Write the minimal code necessary to make tests pass
+- Focus on functionality first, optimization later
+- Ensure all tests pass (green phase)
+
+### 3. Refactor and Improve
+- Clean up code while maintaining test coverage
+- Improve performance and readability
+- Ensure tests continue to pass (refactor phase)
+
+### TDD Example Workflow
+```bash
+# 1. Create failing tests
+uv run pytest tests/test_new_feature.py -v  # Should fail
+
+# 2. Implement feature
+# Edit source code to make tests pass
+
+# 3. Verify tests pass
+uv run pytest tests/test_new_feature.py -v  # Should pass
+
+# 4. Run all tests to ensure no regressions
+uv run pytest -v
+
+# 5. Run code quality checks
+uv run ruff check . && uv run mypy src
+```
+
+### Benefits of TDD in This Project
+- **Quality Assurance**: Ensures all features have test coverage from the start
+- **Documentation**: Tests serve as living documentation of expected behavior
+- **Regression Prevention**: Prevents breaking existing functionality
+- **Design Improvement**: Forces thinking about API design before implementation
+- **Confidence**: Enables safe refactoring and code improvements
+
+### Test Categories
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test component interactions
+- **Configuration Tests**: Test environment variable handling and validation
+- **Error Handling Tests**: Test failure scenarios and edge cases
