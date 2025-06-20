@@ -77,6 +77,7 @@ class AdkSlackAppRunner:
         self.slack_event_processor = SlackEventProcessor(
             interaction_flow=self.interaction_flow,
             bot_user_id=self.config.slack_bot_user_id,
+            allowed_channels=self.config.allowed_channels,
         )
         logger.debug("Slack Event Processor initialized.")
 
