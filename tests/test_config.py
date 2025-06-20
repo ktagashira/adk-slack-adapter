@@ -140,7 +140,5 @@ class TestAdkSlackConfig:
                 "ALLOWED_CHANNELS": "C1111111,C2222222",
             },
         ):
-            config = AdkSlackConfig(
-                allowed_channels=["C9999999", "C8888888"]
-            )
+            config = AdkSlackConfig(allowed_channels=["C9999999", "C8888888"])
             assert config.allowed_channels == ["C9999999", "C8888888"]

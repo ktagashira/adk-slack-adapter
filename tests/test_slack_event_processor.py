@@ -15,9 +15,11 @@ class TestSlackEventProcessor:
     def mock_interaction_flow(self):
         """Create a mock InteractionFlow."""
         mock_flow = MagicMock(spec=InteractionFlow)
+
         # Mock the async generator
         async def mock_response_stream():
             yield "テスト応答です"
+
         mock_flow.get_agent_response_stream.return_value = mock_response_stream()
         return mock_flow
 
@@ -37,15 +39,14 @@ class TestSlackEventProcessor:
         processor = SlackEventProcessor(
             interaction_flow=mock_interaction_flow,
             bot_user_id="U123456",
-            allowed_channels=allowed_channels
+            allowed_channels=allowed_channels,
         )
         assert processor.allowed_channels == allowed_channels
 
     def test_init_without_allowed_channels(self, mock_interaction_flow):
         """Test SlackEventProcessor initialization without allowed channels (all channels allowed)."""
         processor = SlackEventProcessor(
-            interaction_flow=mock_interaction_flow,
-            bot_user_id="U123456"
+            interaction_flow=mock_interaction_flow, bot_user_id="U123456"
         )
         assert processor.allowed_channels is None
 
@@ -58,7 +59,7 @@ class TestSlackEventProcessor:
         processor = SlackEventProcessor(
             interaction_flow=mock_interaction_flow,
             bot_user_id="U123456",
-            allowed_channels=allowed_channels
+            allowed_channels=allowed_channels,
         )
 
         event_data = {
@@ -66,7 +67,7 @@ class TestSlackEventProcessor:
             "channel": "C1234567",  # Allowed channel
             "user": "U999999",
             "text": "<@U123456> こんにちは",
-            "ts": "1234567890.123"
+            "ts": "1234567890.123",
         }
 
         await processor.process_message_event(event_data, mock_say_fn, mock_client)
@@ -85,7 +86,7 @@ class TestSlackEventProcessor:
         processor = SlackEventProcessor(
             interaction_flow=mock_interaction_flow,
             bot_user_id="U123456",
-            allowed_channels=allowed_channels
+            allowed_channels=allowed_channels,
         )
 
         event_data = {
@@ -93,7 +94,7 @@ class TestSlackEventProcessor:
             "channel": "C9999999",  # Not in allowed channels
             "user": "U999999",
             "text": "<@U123456> こんにちは",
-            "ts": "1234567890.123"
+            "ts": "1234567890.123",
         }
 
         await processor.process_message_event(event_data, mock_say_fn, mock_client)
@@ -111,7 +112,7 @@ class TestSlackEventProcessor:
         processor = SlackEventProcessor(
             interaction_flow=mock_interaction_flow,
             bot_user_id="U123456",
-            allowed_channels=None  # No whitelist
+            allowed_channels=None,  # No whitelist
         )
 
         event_data = {
@@ -119,7 +120,7 @@ class TestSlackEventProcessor:
             "channel": "C9999999",  # Any channel should work
             "user": "U999999",
             "text": "<@U123456> こんにちは",
-            "ts": "1234567890.123"
+            "ts": "1234567890.123",
         }
 
         await processor.process_message_event(event_data, mock_say_fn, mock_client)
@@ -138,7 +139,7 @@ class TestSlackEventProcessor:
         processor = SlackEventProcessor(
             interaction_flow=mock_interaction_flow,
             bot_user_id="U123456",
-            allowed_channels=allowed_channels
+            allowed_channels=allowed_channels,
         )
 
         event_data = {
@@ -146,7 +147,7 @@ class TestSlackEventProcessor:
             "channel": "D9999999",  # DM channel (not in whitelist)
             "user": "U999999",
             "text": "こんにちは",
-            "ts": "1234567890.123"
+            "ts": "1234567890.123",
         }
 
         await processor.process_message_event(event_data, mock_say_fn, mock_client)
@@ -165,7 +166,7 @@ class TestSlackEventProcessor:
         processor = SlackEventProcessor(
             interaction_flow=mock_interaction_flow,
             bot_user_id="U123456",
-            allowed_channels=allowed_channels
+            allowed_channels=allowed_channels,
         )
 
         event_data = {
@@ -173,7 +174,7 @@ class TestSlackEventProcessor:
             "channel": "D9999999",  # DM channel (in whitelist)
             "user": "U999999",
             "text": "こんにちは",
-            "ts": "1234567890.123"
+            "ts": "1234567890.123",
         }
 
         await processor.process_message_event(event_data, mock_say_fn, mock_client)

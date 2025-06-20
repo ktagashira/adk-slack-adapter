@@ -23,7 +23,10 @@ class SlackEventProcessor:
     """
 
     def __init__(
-        self, interaction_flow: InteractionFlow, bot_user_id: str | None, allowed_channels: list[str] | None = None
+        self,
+        interaction_flow: InteractionFlow,
+        bot_user_id: str | None,
+        allowed_channels: list[str] | None = None,
     ) -> None:
         """
         Initialize the SlackEventProcessor.
@@ -82,7 +85,9 @@ class SlackEventProcessor:
         # Check channel whitelist (applies to both channels and DMs when configured)
         if self.allowed_channels is not None:
             if channel_id not in self.allowed_channels:
-                logger.debug(f"Channel {channel_id} is not in allowed channels list. Ignoring message.")
+                logger.debug(
+                    f"Channel {channel_id} is not in allowed channels list. Ignoring message."
+                )
                 return
         current_message_has_mention = (
             f"<@{self.bot_user_id}>" in text if self.bot_user_id else False

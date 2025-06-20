@@ -50,7 +50,9 @@ class AdkSlackConfig:
             if allowed_channels_env:
                 # Split by comma and strip whitespace
                 self.allowed_channels = [
-                    channel.strip() for channel in allowed_channels_env.split(",") if channel.strip()
+                    channel.strip()
+                    for channel in allowed_channels_env.split(",")
+                    if channel.strip()
                 ]
 
     def validate(self) -> None:
