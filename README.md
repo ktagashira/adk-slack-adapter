@@ -163,10 +163,6 @@ uv run mypy .
 - Google Agent Development Kit (ADK) 1.2.1+
 - Slack Bolt SDK 1.23.0+
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
