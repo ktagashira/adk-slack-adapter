@@ -2,6 +2,7 @@ import logging
 from collections.abc import AsyncGenerator
 
 from google.adk.agents import Agent
+from google.adk.apps import App
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -72,9 +73,9 @@ class AdkAdapter:
                 yield "エラー: ADKエージェントが設定されていません。"
                 return
 
+            app = App(name=self.app_name, root_agent=self.root_agent)
             runner = Runner(
-                app_name=self.app_name,
-                agent=self.root_agent,
+                app=app,
                 artifact_service=self.artifacts_service,
                 session_service=self.session_service,
             )
