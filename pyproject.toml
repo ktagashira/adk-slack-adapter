@@ -26,8 +26,8 @@ classifiers = [
 dependencies = [
     "google-adk>=1.26.0",
     "slack-bolt>=1.23.0",
-    "aiohttp>=3.8.0",
-    "urllib3>=2.5.0",
+    "aiohttp>=3.13.3",
+    "urllib3>=2.6.3",
 ]
 
 [project.urls]
