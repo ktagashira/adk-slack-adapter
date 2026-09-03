@@ -1,7 +1,7 @@
 """Contract tests for the Google ADK integration boundary."""
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from google.genai.types import Content, Part
@@ -37,8 +37,6 @@ def adapter():
 async def test_query_agent_stream_uses_adk_v2_app_and_runner(adapter):
     """ADK v2 receives the expected app, session, and user message."""
     adapter, session_service, artifact_service, app_class, runner_class = adapter
-    session = SimpleNamespace(id="session-id", user_id="U123")
-    session_service.get_session = AsyncMock(return_value=session)
 
     async def events():
         yield SimpleNamespace(
@@ -62,49 +60,17 @@ async def test_query_agent_stream_uses_adk_v2_app_and_runner(adapter):
     ]
 
     assert responses == ["Hello", "world"]
-    session_service.get_session.assert_awaited_once_with(
-        app_name="test-app",
-        user_id="U123",
-        session_id="slack_U123_thread-ts",
-    )
     app_class.assert_called_once_with(name="test-app", root_agent=adapter.root_agent)
     runner_class.assert_called_once_with(
         app=app_class.return_value,
         artifact_service=artifact_service,
         session_service=session_service,
+        auto_create_session=True,
     )
     runner_class.return_value.run_async.assert_called_once()
+    run_arguments = runner_class.return_value.run_async.call_args.kwargs
+    assert run_arguments["session_id"] == "slack_U123_thread-ts"
+    assert run_arguments["user_id"] == "U123"
     new_message = runner_class.return_value.run_async.call_args.kwargs["new_message"]
     assert new_message.role == "user"
     assert new_message.parts[0].text == "question"
-
-
-@pytest.mark.asyncio
-async def test_query_agent_stream_creates_missing_session(adapter):
-    """The stable ADK v2 session API preserves Slack thread continuity."""
-    adapter, session_service, _, _, runner_class = adapter
-    created_session = SimpleNamespace(id="new-session", user_id="U123")
-    session_service.get_session = AsyncMock(return_value=None)
-    session_service.create_session = AsyncMock(return_value=created_session)
-
-    async def no_events():
-        if False:
-            yield
-
-    runner_class.return_value.run_async.return_value = no_events()
-    responses = [
-        response
-        async for response in adapter.query_agent_stream(
-            message_text="question",
-            user_id="U123",
-            session_id_suffix="thread-ts",
-        )
-    ]
-
-    assert responses == []
-    session_service.create_session.assert_awaited_once_with(
-        state={},
-        app_name="test-app",
-        user_id="U123",
-        session_id="slack_U123_thread-ts",
-    )
