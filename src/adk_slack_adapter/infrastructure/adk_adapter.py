@@ -103,5 +103,5 @@ class AdkAdapter:
                             if part.text and part.text.strip():
                                 yield part.text
         except Exception as e:
-            logger.error(f"Error querying ADK agent: {e}")
+            logger.exception("Error querying ADK agent: %s", e)
             yield f"ADKエージェントの処理中にエラーが発生しました: {str(e)}"

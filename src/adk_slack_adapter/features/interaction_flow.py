@@ -54,5 +54,5 @@ class InteractionFlow:
                 if response_part:
                     yield response_part
         except Exception as e:
-            logger.error(f"Error in InteractionFlow: {e}")
+            logger.exception("Error in InteractionFlow: %s", e)
             yield f"申し訳ありません、処理中にエラーが発生しました: {str(e)}"

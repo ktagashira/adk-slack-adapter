@@ -1,12 +1,20 @@
 import logging
-from collections.abc import Callable
-from typing import Any
+from collections.abc import Awaitable, Mapping
+from typing import Any, Protocol
 
 from slack_sdk.web.async_client import AsyncWebClient
 
 from .interaction_flow import InteractionFlow
 
 logger = logging.getLogger(__name__)
+
+
+class SayFunction(Protocol):
+    """Subset of Slack Bolt's asynchronous ``say`` callable used here."""
+
+    def __call__(
+        self, *, text: str, thread_ts: str, channel: str
+    ) -> Awaitable[Any]: ...
 
 
 class SlackEventProcessor:
@@ -45,7 +53,10 @@ class SlackEventProcessor:
             )
 
     async def process_message_event(
-        self, event_data: dict[str, Any], say_fn: Callable, client: AsyncWebClient
+        self,
+        event_data: Mapping[str, Any],
+        say_fn: SayFunction,
+        client: AsyncWebClient,
     ) -> None:
         """
         Process a Slack message event (direct message or app mention).
@@ -89,30 +100,13 @@ class SlackEventProcessor:
                     f"Channel {channel_id} is not in allowed channels list. Ignoring message."
                 )
                 return
-        current_message_has_mention = (
-            f"<@{self.bot_user_id}>" in text if self.bot_user_id else False
+        current_message_has_mention = self._mentions_bot(text)
+        is_thread_reply_to_bot_mention = await self._thread_root_mentions_bot(
+            client=client,
+            channel_id=channel_id,
+            message_ts=message_ts,
+            thread_ts=thread_ts,
         )
-        is_thread_reply_to_bot_mention = False
-
-        if thread_ts and message_ts != thread_ts and self.bot_user_id and channel_id:
-            try:
-                replies_response = await client.conversations_replies(
-                    channel=channel_id,
-                    ts=thread_ts,
-                    limit=1,
-                )
-                messages = replies_response.get("messages")
-                if messages and isinstance(messages, list) and len(messages) > 0:
-                    first_message_in_thread = messages[0]
-                    if first_message_in_thread:
-                        first_message_text = first_message_in_thread.get("text", "")
-                        if f"<@{self.bot_user_id}>" in first_message_text:
-                            is_thread_reply_to_bot_mention = True
-                            logger.debug(
-                                f"Message is a reply in a thread where bot was mentioned. Thread ts: {thread_ts}"
-                            )
-            except Exception as e:
-                logger.error(f"Error fetching thread replies for ts {thread_ts}: {e}")
 
         if not (is_dm or current_message_has_mention or is_thread_reply_to_bot_mention):
             logger.debug(
@@ -120,11 +114,7 @@ class SlackEventProcessor:
             )
             return
 
-        clean_text = (
-            text.replace(f"<@{self.bot_user_id}>", "").strip()
-            if self.bot_user_id and current_message_has_mention
-            else text.strip()
-        )
+        clean_text = self._clean_message_text(text, current_message_has_mention)
 
         if not clean_text and not is_thread_reply_to_bot_mention:
             logger.debug(
@@ -153,7 +143,7 @@ class SlackEventProcessor:
                         channel=channel_id,
                     )
         except Exception as e:
-            logger.error(f"Error processing message in SlackEventProcessor: {e}")
+            logger.exception("Error processing message in SlackEventProcessor: %s", e)
             try:
                 await say_fn(
                     text="申し訳ありません、メッセージ処理中にエラーが発生しました",
@@ -161,4 +151,47 @@ class SlackEventProcessor:
                     channel=channel_id,
                 )
             except Exception as say_e:
-                logger.error(f"Failed to send error message to Slack: {say_e}")
+                logger.exception("Failed to send error message to Slack: %s", say_e)
+
+    def _mentions_bot(self, text: str) -> bool:
+        return bool(self.bot_user_id and f"<@{self.bot_user_id}>" in text)
+
+    def _clean_message_text(self, text: str, mentions_bot: bool) -> str:
+        if self.bot_user_id and mentions_bot:
+            return text.replace(f"<@{self.bot_user_id}>", "").strip()
+        return text.strip()
+
+    async def _thread_root_mentions_bot(
+        self,
+        *,
+        client: AsyncWebClient,
+        channel_id: str,
+        message_ts: str,
+        thread_ts: str | None,
+    ) -> bool:
+        if not thread_ts or message_ts == thread_ts or not self.bot_user_id:
+            return False
+
+        try:
+            replies_response = await client.conversations_replies(
+                channel=channel_id,
+                ts=thread_ts,
+                limit=1,
+            )
+            messages = replies_response.get("messages")
+            if not isinstance(messages, list) or not messages:
+                return False
+            root_message = messages[0]
+            if not isinstance(root_message, Mapping):
+                return False
+            root_mentions_bot = self._mentions_bot(root_message.get("text", ""))
+            if root_mentions_bot:
+                logger.debug(
+                    "Message is a reply in a thread where bot was mentioned. "
+                    "Thread ts: %s",
+                    thread_ts,
+                )
+            return root_mentions_bot
+        except Exception:
+            logger.exception("Error fetching thread replies for ts %s", thread_ts)
+            return False

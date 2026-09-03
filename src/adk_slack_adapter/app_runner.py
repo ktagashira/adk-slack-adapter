@@ -113,8 +113,8 @@ class AdkSlackAppRunner:
             logger.info(
                 "AdkSlackAppRunner task was cancelled during startup or execution."
             )
-        except Exception as e:
-            logger.error(f"An error occurred while running the AdkSlackAppRunner: {e}")
+        except Exception:
+            logger.exception("An error occurred while running AdkSlackAppRunner")
             # Depending on the desired behavior, you might want to re-raise or handle
         finally:
             logger.info("AdkSlackAppRunner (Slack Adapter) shutting down.")
