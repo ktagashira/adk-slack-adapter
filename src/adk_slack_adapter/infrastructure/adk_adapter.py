@@ -62,6 +62,7 @@ class AdkAdapter:
                 app=self.app,
                 artifact_service=self.artifacts_service,
                 session_service=self.session_service,
+                auto_create_session=True,
             )
             if self.app
             else None
@@ -73,8 +74,8 @@ class AdkAdapter:
         """
         Query the ADK agent and yield response parts as a stream.
 
-        This method manages session creation/retrieval and streams the agent's
-        response back to the caller in real-time.
+        This method delegates session creation to the ADK runner and streams the
+        agent's response back to the caller in real-time.
 
         Args:
             message_text: The user's message to process
@@ -86,30 +87,19 @@ class AdkAdapter:
         """
         try:
             session_id = f"slack_{user_id}_{session_id_suffix}"
-            session = await self.session_service.get_session(
-                app_name=self.app_name, user_id=user_id, session_id=session_id
-            )
-            if not session:
-                session = await self.session_service.create_session(
-                    state={},
-                    app_name=self.app_name,
-                    user_id=user_id,
-                    session_id=session_id,
-                )
-
             if not self.root_agent:
                 logger.error("ADK Agent instance is not set in AdkAdapter.")
                 yield "エラー: ADKエージェントが設定されていません。"
                 return
 
             query_content = Content(role="user", parts=[Part(text=message_text)])
-            logger.info("Querying ADK agent for session: %s", session.id)
+            logger.info("Querying ADK agent for session: %s", session_id)
 
             if self.runner is None:
                 raise RuntimeError("ADK Runner is not initialized.")
             events_async = self.runner.run_async(
-                session_id=session.id,
-                user_id=session.user_id,
+                session_id=session_id,
+                user_id=user_id,
                 new_message=query_content,
             )
 
