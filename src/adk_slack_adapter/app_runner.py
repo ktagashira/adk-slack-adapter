@@ -2,6 +2,8 @@ import asyncio
 import logging
 
 from google.adk.agents import Agent
+from google.adk.artifacts.base_artifact_service import BaseArtifactService
+from google.adk.sessions import BaseSessionService
 
 from .features.interaction_flow import InteractionFlow
 from .features.slack_event_processor import SlackEventProcessor
@@ -33,6 +35,8 @@ class AdkSlackAppRunner:
         self,
         agent_instance: Agent,
         config: AdkSlackConfig | None = None,
+        session_service: BaseSessionService | None = None,
+        artifact_service: BaseArtifactService | None = None,
     ) -> None:
         """
         Initialize the AdkSlackAppRunner.
@@ -41,6 +45,8 @@ class AdkSlackAppRunner:
             agent_instance: The specific ADK Agent instance to use for processing messages.
             config: Optional AdkSlackConfig object. If None, configuration will be
                    loaded from environment variables using AdkSlackConfig defaults.
+            session_service: Optional persistent ADK session backend.
+            artifact_service: Optional persistent ADK artifact backend.
 
         Raises:
             ValueError: If configuration validation fails or required tokens are missing.
@@ -68,6 +74,8 @@ class AdkSlackAppRunner:
         self.adk_adapter = AdkAdapter(
             agent_instance=self.agent_instance,
             adk_app_name=self.config.adk_app_name,
+            session_service=session_service,
+            artifact_service=artifact_service,
         )
         logger.debug("ADK Adapter initialized.")
 

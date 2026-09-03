@@ -22,9 +22,10 @@ class TestAdkSlackAppRunner:
             adk_app_name="test-app",
         )
 
+    @patch("adk_slack_adapter.app_runner.AdkAdapter")
     @patch("adk_slack_adapter.infrastructure.slack_adapter.AsyncSocketModeHandler")
     @patch("adk_slack_adapter.infrastructure.slack_adapter.AsyncApp")
-    def test_init_with_valid_config(self, mock_app, mock_handler):
+    def test_init_with_valid_config(self, mock_app, mock_handler, mock_adk_adapter):
         """Test initialization with valid configuration."""
         runner = AdkSlackAppRunner(
             agent_instance=self.mock_agent,
@@ -32,10 +33,19 @@ class TestAdkSlackAppRunner:
         )
         assert runner.agent_instance == self.mock_agent
         assert runner.config == self.valid_config
+        mock_adk_adapter.assert_called_once_with(
+            agent_instance=self.mock_agent,
+            adk_app_name="test-app",
+            session_service=None,
+            artifact_service=None,
+        )
 
+    @patch("adk_slack_adapter.app_runner.AdkAdapter")
     @patch("adk_slack_adapter.infrastructure.slack_adapter.AsyncSocketModeHandler")
     @patch("adk_slack_adapter.infrastructure.slack_adapter.AsyncApp")
-    def test_init_without_config_loads_from_env(self, mock_app, mock_handler):
+    def test_init_without_config_loads_from_env(
+        self, mock_app, mock_handler, mock_adk_adapter
+    ):
         """Test initialization without config loads from environment."""
         with patch.dict(
             "os.environ",

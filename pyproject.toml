@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "google-adk>=1.28.1,<2",
+    "google-adk>=2.0.0,<3",
     "slack-bolt>=1.23.0",
     "aiohttp>=3.14.3",
     "urllib3>=2.7.0",

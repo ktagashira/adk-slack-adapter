@@ -160,8 +160,30 @@ uv run mypy .
 ## Requirements
 
 - Python 3.11+
-- Google Agent Development Kit (ADK) 1.2.1+
+- Google Agent Development Kit (ADK) 2.0+
 - Slack Bolt SDK 1.23.0+
+
+### Migrating from ADK 1.x
+
+This version requires Google ADK 2.x. The adapter continues to use ADK's public
+`Agent`, `App`, `Runner`, in-memory session, and artifact service APIs, so no
+adapter configuration changes are required. Applications using other ADK APIs
+should review the Google ADK 2.0 release notes before upgrading.
+
+Conversation identity remains unchanged: each Slack thread uses a session ID in
+the form `slack_{user_id}_{thread_id}`.
+
+By default, sessions and artifacts are stored in memory and are lost when the
+process restarts. Production applications can pass ADK-compatible persistent
+services to `AdkSlackAppRunner`:
+
+```python
+runner = AdkSlackAppRunner(
+    agent_instance=agent,
+    session_service=my_session_service,
+    artifact_service=my_artifact_service,
+)
+```
 
 ## Contributing
 
