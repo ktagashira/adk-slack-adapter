@@ -3,9 +3,10 @@ from collections.abc import AsyncGenerator
 
 from google.adk.agents import Agent
 from google.adk.apps import App
+from google.adk.artifacts.base_artifact_service import BaseArtifactService
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import BaseSessionService, InMemorySessionService
 from google.genai.types import Content, Part
 
 logger = logging.getLogger(__name__)
@@ -25,18 +26,46 @@ class AdkAdapter:
         root_agent: The ADK agent instance to use for processing
     """
 
-    def __init__(self, agent_instance: Agent, adk_app_name: str) -> None:
+    def __init__(
+        self,
+        agent_instance: Agent,
+        adk_app_name: str,
+        session_service: BaseSessionService | None = None,
+        artifact_service: BaseArtifactService | None = None,
+    ) -> None:
         """
         Initialize the AdkAdapter.
 
         Args:
             agent_instance: An instance of google.adk.agents.Agent.
             adk_app_name: The application name for ADK.
+            session_service: Optional ADK session backend. Defaults to in-memory.
+            artifact_service: Optional ADK artifact backend. Defaults to in-memory.
         """
-        self.session_service = InMemorySessionService()
-        self.artifacts_service = InMemoryArtifactService()
+        self.session_service = (
+            session_service if session_service is not None else InMemorySessionService()
+        )
+        self.artifacts_service = (
+            artifact_service
+            if artifact_service is not None
+            else InMemoryArtifactService()
+        )
         self.app_name = adk_app_name
         self.root_agent = agent_instance
+        self.app = (
+            App(name=self.app_name, root_agent=self.root_agent)
+            if self.root_agent
+            else None
+        )
+        self.runner = (
+            Runner(
+                app=self.app,
+                artifact_service=self.artifacts_service,
+                session_service=self.session_service,
+            )
+            if self.app
+            else None
+        )
 
     async def query_agent_stream(
         self, message_text: str, user_id: str, session_id_suffix: str
@@ -73,19 +102,12 @@ class AdkAdapter:
                 yield "エラー: ADKエージェントが設定されていません。"
                 return
 
-            app = App(name=self.app_name, root_agent=self.root_agent)
-            runner = Runner(
-                app=app,
-                artifact_service=self.artifacts_service,
-                session_service=self.session_service,
-            )
-
             query_content = Content(role="user", parts=[Part(text=message_text)])
-            logger.info(
-                f"Querying ADK agent with: '{message_text}' for session: {session.id}"
-            )
+            logger.info("Querying ADK agent for session: %s", session.id)
 
-            events_async = runner.run_async(
+            if self.runner is None:
+                raise RuntimeError("ADK Runner is not initialized.")
+            events_async = self.runner.run_async(
                 session_id=session.id,
                 user_id=session.user_id,
                 new_message=query_content,
