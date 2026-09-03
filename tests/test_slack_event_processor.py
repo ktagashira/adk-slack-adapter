@@ -183,3 +183,99 @@ class TestSlackEventProcessor:
         mock_interaction_flow.get_agent_response_stream.assert_called_once()
         # Verify that say function was called
         mock_say_fn.assert_called()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("missing_field", ["user", "channel", "ts"])
+    async def test_incomplete_event_is_ignored(
+        self,
+        missing_field,
+        mock_interaction_flow,
+        mock_say_fn,
+        mock_client,
+    ):
+        """Events without a routing identifier cannot be processed safely."""
+        processor = SlackEventProcessor(mock_interaction_flow, "U123456")
+        event_data = {
+            "channel_type": "im",
+            "channel": "D1234567",
+            "user": "U999999",
+            "text": "hello",
+            "ts": "1234567890.123",
+        }
+        del event_data[missing_field]
+
+        await processor.process_message_event(event_data, mock_say_fn, mock_client)
+
+        mock_interaction_flow.get_agent_response_stream.assert_not_called()
+        mock_say_fn.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_message_from_bot_is_ignored(
+        self, mock_interaction_flow, mock_say_fn, mock_client
+    ):
+        """The processor must not respond to its own messages."""
+        processor = SlackEventProcessor(mock_interaction_flow, "U123456")
+        event_data = {
+            "channel_type": "im",
+            "channel": "D1234567",
+            "user": "U123456",
+            "text": "hello",
+            "ts": "1234567890.123",
+        }
+
+        await processor.process_message_event(event_data, mock_say_fn, mock_client)
+
+        mock_interaction_flow.get_agent_response_stream.assert_not_called()
+        mock_say_fn.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_thread_reply_to_bot_mention_is_processed(
+        self, mock_interaction_flow, mock_say_fn, mock_client
+    ):
+        """Replies inherit relevance when the root message mentions the bot."""
+        processor = SlackEventProcessor(mock_interaction_flow, "U123456")
+        mock_client.conversations_replies.return_value = {
+            "messages": [{"text": "<@U123456> root question"}]
+        }
+        event_data = {
+            "channel_type": "channel",
+            "channel": "C1234567",
+            "user": "U999999",
+            "text": "follow-up",
+            "ts": "1234567890.456",
+            "thread_ts": "1234567890.123",
+        }
+
+        await processor.process_message_event(event_data, mock_say_fn, mock_client)
+
+        mock_client.conversations_replies.assert_awaited_once_with(
+            channel="C1234567", ts="1234567890.123", limit=1
+        )
+        mock_interaction_flow.get_agent_response_stream.assert_called_once_with(
+            message_text="follow-up",
+            user_id="U999999",
+            thread_id="1234567890.123",
+        )
+
+    @pytest.mark.asyncio
+    async def test_empty_mention_prompts_for_message(
+        self, mock_interaction_flow, mock_say_fn, mock_client
+    ):
+        """A mention without content produces the existing help response."""
+        processor = SlackEventProcessor(mock_interaction_flow, "U123456")
+        event_data = {
+            "channel_type": "channel",
+            "channel": "C1234567",
+            "user": "U999999",
+            "text": "  <@U123456>  ",
+            "ts": "1234567890.123",
+        }
+
+        await processor.process_message_event(event_data, mock_say_fn, mock_client)
+
+        mock_interaction_flow.get_agent_response_stream.assert_not_called()
+        mock_say_fn.assert_awaited_once_with(
+            text="何かご用でしょうか？メッセージ内容を続けて入力してください。",
+            thread_ts="1234567890.123",
+            channel="C1234567",
+        )

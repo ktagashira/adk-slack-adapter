@@ -108,5 +108,5 @@ class SlackAdapter:
             logger.debug(
                 f"Message posted to channel {channel} (thread: {thread_ts}): {text}"
             )
-        except Exception as e:
-            logger.error(f"Error posting message to Slack: {e}")
+        except Exception:
+            logger.exception("Error posting message to Slack")
