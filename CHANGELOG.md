@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-04
+
+### Changed
+
+- Refactored Slack event processing into focused helpers for mention handling,
+  message cleanup, and thread-root detection.
+- Added an explicit asynchronous protocol for Slack response callbacks.
+- Improved exception logging to include tracebacks while preserving existing
+  user-facing behavior.
+- Updated direct and transitive dependencies to versions without known
+  vulnerabilities, while keeping Google ADK on the 1.x release line.
+
+### Tests
+
+- Added regression coverage for incomplete events, self-authored bot messages,
+  thread replies, and empty mentions.
+
 ## [0.1.0] - 2025-01-10
 
 ### Added
@@ -35,5 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Features layer for business logic and message processing
 - Comprehensive error handling and logging
 
-[Unreleased]: https://github.com/ktagashira/adk-slack-adapter/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ktagashira/adk-slack-adapter/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/ktagashira/adk-slack-adapter/compare/v0.2.1...v0.2.2
 [0.1.0]: https://github.com/ktagashira/adk-slack-adapter/releases/tag/v0.1.0
